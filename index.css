@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: grid;
+  justify-content: center;
+  justify-items: center;
+}
+
+.grid {
+  display: grid;
+  width: min-content;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.grid * {
+  border: 1px solid black;
+}
+
+.grid .grid {
+  border-width: 2px;
+}
+
+.grid input {
+  width: 2rem;
+  height: 2rem;
+  text-align: center;
+}
+
+.grid input:read-only {
+  font-weight: bold;
+  cursor: default;
+}
