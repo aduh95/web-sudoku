@@ -1,3 +1,8 @@
+var waitForRuntimeInit = new Promise(function(done) {
+  Module.onRuntimeInitialized = done;
+});
 onmessage = function() {
-  postMessage(Module.generatePuzzle());
+  waitForRuntimeInit.then(function() {
+    postMessage(Module.generatePuzzle());
+  });
 };
