@@ -1,6 +1,7 @@
 const SAVED_GRID = "previousGame";
 const USER_INPUT_SAVE = "userInput";
 
+const WINNING_GRID = "winning";
 const WRONG_VALUE = "wrong-value";
 
 export default class SudokuGrid {
@@ -20,7 +21,11 @@ export default class SudokuGrid {
     this.#onBlur();
 
     if (target.form.checkValidity()) {
-      this.#checkGrid(target.form);
+      this.#checkGrid()
+        .then(validGrid =>
+          validGrid ? this.#winningAnimation(target.form) : this.#onFocus(ev)
+        )
+        .catch(console.error);
     } else if (ev.data !== null) {
       target.reportValidity();
       this.#onFocus(ev);
@@ -115,6 +120,18 @@ export default class SudokuGrid {
     return cell;
   };
 
+  #winningAnimation = form => {
+    const keyframes = { opacity: [0, 1], backgroundColor: ["white", "green"] };
+    this.#subGrids.flat().map(cell =>
+      cell.animate(keyframes, {
+        delay: Number(cell.value) * 100 + Math.random(),
+        duration: Math.random() * 1000,
+      })
+    );
+
+    form.classList.add(WINNING_GRID);
+  };
+
   constructor(container) {
     const length = 9;
 
@@ -175,8 +192,13 @@ export default class SudokuGrid {
     });
   }
 
-  fillNewGame(ev) {
+  fillNewGame = ev => {
     const { data } = ev;
+
+    Array.from(
+      document.getElementsByClassName(WINNING_GRID)
+    ).forEach(({ classList }) => classList.remove(WINNING_GRID));
+
     this.#fillGame(data);
     try {
       localStorage.clear();
@@ -184,7 +206,7 @@ export default class SudokuGrid {
     } catch {
       console.warn("localStorage not available");
     }
-  }
+  };
 
   #fillGame = data => {
     const cells = this.#rows.flat().reverse();
@@ -202,9 +224,19 @@ export default class SudokuGrid {
     }
   };
 
-  #checkGrid = () => {
-    console.warn("TODO");
-  };
+  #checkGrid = () =>
+    new Promise((resolve, reject) => {
+      const extractValues = list => list.map(cell => cell.value);
+      const worker = new Worker("./checkGrid.js");
+      worker.onmessage = ({ data }) => {
+        resolve(!data);
+      };
+      worker.onerror = reject;
+      worker.postMessage({
+        subGrids: this.#subGrids.map(extractValues),
+        rows: this.#rows.map(extractValues),
+      });
+    });
 
   getCellFromCoordinates(x, y) {
     return this.#rows[x][y];
