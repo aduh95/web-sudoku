@@ -134,7 +134,7 @@ export default class SudokuGrid {
     form.classList.add(WINNING_GRID);
   };
 
-  constructor(container) {
+  constructor(container, filler) {
     const length = 9;
 
     this.#subGrids = Array.from({ length }, () =>
@@ -150,11 +150,12 @@ export default class SudokuGrid {
       );
     });
 
-    this.restoreSavedGame();
-    this.insertGrid(container.firstChild);
+    this.restoreSavedGame(filler);
+    this.insertGrid(container.firstChild, filler);
+    requestAnimationFrame(() => container.querySelector("input").focus());
   }
 
-  restoreSavedGame() {
+  restoreSavedGame(requestNewGrid) {
     const previousGame = localStorage.getItem(SAVED_GRID);
     if (previousGame) {
       this.#fillGame(previousGame);
@@ -167,11 +168,11 @@ export default class SudokuGrid {
         }
       }
     } else {
-      console.warn("TODO");
+      requestNewGrid(81);
     }
   }
 
-  insertGrid(placeholder) {
+  insertGrid(placeholder, filler) {
     const grid = document.createElement("form");
     grid.className = "grid";
     grid.id = "sudoku";
@@ -182,6 +183,7 @@ export default class SudokuGrid {
       grid.append(subGrid);
     }
     placeholder.replaceWith(grid);
+    document.getElementById("newGame").addEventListener("click", filler);
     grid.addEventListener("reset", () => {
       try {
         const data = localStorage.getItem(SAVED_GRID);

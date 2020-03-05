@@ -1,11 +1,10 @@
 import SudokuGrid from "./SudokuGrid.js";
 
-const sudokuGrid = new SudokuGrid(document.querySelector("main"));
-
 const worker = new Worker("./sudoku-generator.js");
 
-worker.addEventListener("message", sudokuGrid.fillNewGame);
+const sudokuGrid = new SudokuGrid(
+  document.querySelector("main"),
+  Worker.prototype.postMessage.bind(worker)
+);
 
-document.getElementById("newGame").addEventListener("click", () => {
-  worker.postMessage(true);
-});
+worker.addEventListener("message", sudokuGrid.fillNewGame);
