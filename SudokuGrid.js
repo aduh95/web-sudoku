@@ -14,6 +14,8 @@ export default class SudokuGrid {
    */
   #subGrids;
 
+  #cellCoordinates = new WeakMap();
+
   #onInput = ev => {
     const { target } = ev;
     const targetCoordinates = this.getCoordinatesFromCell(target);
@@ -243,7 +245,13 @@ export default class SudokuGrid {
   }
 
   getCoordinatesFromCell(cell) {
-    const row = this.#rows.find(row => row.includes(cell));
-    return [this.#rows.indexOf(row), row.indexOf(cell)];
+    if (!this.#cellCoordinates.has(cell)) {
+      const row = this.#rows.find(row => row.includes(cell));
+      this.#cellCoordinates.set(cell, [
+        this.#rows.indexOf(row),
+        row.indexOf(cell),
+      ]);
+    }
+    return this.#cellCoordinates.get(cell);
   }
 }
