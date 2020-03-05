@@ -8,6 +8,11 @@ body {
   justify-items: center;
 }
 
+main {
+  animation: fadeIn 100ms;
+  min-height: 18rem;
+}
+
 .grid {
   position: relative;
   display: grid;
