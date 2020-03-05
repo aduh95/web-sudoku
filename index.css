@@ -39,3 +39,7 @@ body {
   font-weight: bold;
   cursor: default;
 }
+
+.wrong-value {
+  background-color: #fcc;
+}

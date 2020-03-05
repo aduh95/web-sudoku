@@ -1,6 +1,8 @@
 const SAVED_GRID = "previousGame";
 const USER_INPUT_SAVE = "userInput";
 
+const WRONG_VALUE = "wrong-value";
+
 export default class SudokuGrid {
   /**
    * @type {HTMLInputElement[][]}
@@ -9,22 +11,47 @@ export default class SudokuGrid {
   /**
    * @type {HTMLInputElement[][]}
    */
-  #subGrid;
+  #subGrids;
 
   #onInput = ev => {
-    if (ev.target.form.checkValidity()) {
-      console.log("grid full");
+    const { target } = ev;
+    const targetCoordinates = this.getCoordinatesFromCell(target);
+
+    this.#onBlur();
+
+    if (target.form.checkValidity()) {
+      this.#checkGrid(target.form);
     } else if (ev.data !== null) {
-      ev.target.reportValidity();
+      target.reportValidity();
+      this.#onFocus(ev);
     }
     try {
-      localStorage.setItem(
-        USER_INPUT_SAVE + this.getCoordinatesFromCell(event.target),
-        event.target.value
-      );
+      localStorage.setItem(USER_INPUT_SAVE + targetCoordinates, target.value);
     } catch {
       console.warn("localStorage not available");
     }
+  };
+
+  #onFocus = ({ target }) => {
+    const targetCoordinates = this.getCoordinatesFromCell(target);
+
+    const { value, parentNode } = target;
+    if (value !== "") {
+      const valueClashes = Array.from(parentNode.children)
+        .concat(this.#rows[targetCoordinates[0]])
+        .concat(this.#rows.map(row => row[targetCoordinates[1]]))
+        .filter(cell => cell !== target && cell.value === value);
+      if (valueClashes.length) {
+        target.classList.add(WRONG_VALUE);
+        valueClashes.forEach(({ classList }) => classList.add(WRONG_VALUE));
+      }
+    }
+  };
+
+  #onBlur = () => {
+    Array.from(
+      document.getElementsByClassName(WRONG_VALUE)
+    ).forEach(({ classList }) => classList.remove(WRONG_VALUE));
   };
 
   #onKeyDown = event => {
@@ -81,6 +108,8 @@ export default class SudokuGrid {
     cell.required = true;
 
     cell.addEventListener("input", this.#onInput, { passive: true });
+    cell.addEventListener("focus", this.#onFocus, { passive: true });
+    cell.addEventListener("blur", this.#onBlur, { passive: true });
     cell.addEventListener("keydown", this.#onKeyDown, { passive: false });
 
     return cell;
@@ -89,7 +118,7 @@ export default class SudokuGrid {
   constructor(container) {
     const length = 9;
 
-    this.#subGrid = Array.from({ length }, () =>
+    this.#subGrids = Array.from({ length }, () =>
       Array.from({ length }, this.#createCell)
     );
 
@@ -98,7 +127,7 @@ export default class SudokuGrid {
       const offsetY = (i * 3) % 9;
       return Array.from(
         { length },
-        (_, j) => this.#subGrid[offsetX + Math.floor(j / 3)][offsetY + (j % 3)]
+        (_, j) => this.#subGrids[offsetX + Math.floor(j / 3)][offsetY + (j % 3)]
       );
     });
 
@@ -127,7 +156,7 @@ export default class SudokuGrid {
     const grid = document.createElement("form");
     grid.className = "grid";
     grid.id = "sudoku";
-    for (const cells of this.#subGrid) {
+    for (const cells of this.#subGrids) {
       const subGrid = document.createElement("div");
       subGrid.className = "grid";
       subGrid.append(...cells);
@@ -171,6 +200,10 @@ export default class SudokuGrid {
         cell.value = char;
       }
     }
+  };
+
+  #checkGrid = () => {
+    console.warn("TODO");
   };
 
   getCellFromCoordinates(x, y) {
