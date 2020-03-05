@@ -19,6 +19,9 @@ main {
   width: min-content;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
+
+  background-color: #fff;
+  color: #000;
 }
 
 .grid.winning::after {
@@ -56,7 +59,7 @@ main {
 }
 
 .grid * {
-  border: 1px solid black;
+  border: 1px solid currentColor;
 }
 
 .grid .grid {
@@ -78,6 +81,13 @@ main {
 .grid input:read-only {
   font-weight: bold;
   cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #fff;
+    background-color: #222;
+  }
 }
 
 .wrong-value {
