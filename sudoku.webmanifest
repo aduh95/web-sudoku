@@ -1,0 +1,14 @@
+{
+  "background_color": "white",
+  "display": "standalone",
+  "name": "Web Sudoku",
+  "short_name": "Sudoku",
+  "start_url": "https://aduh95.github.io/web-sudoku/",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
