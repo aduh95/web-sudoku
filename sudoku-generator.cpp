@@ -340,6 +340,8 @@ void Sudoku::calculateDifficulty()
 // END: calculating difficulty level
 
 std::string generatePuzzle() {
+  srand(time(NULL));
+
   // Creating an instance of Sudoku
   Sudoku *puzzle = new Sudoku();
 
