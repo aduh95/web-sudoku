@@ -27,6 +27,12 @@ body {
   width: 2rem;
   height: 2rem;
   text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.grid input::-webkit-outer-spin-button,
+.grid input::-webkit-inner-spin-button {
+  display: none;
 }
 
 .grid input:read-only {
