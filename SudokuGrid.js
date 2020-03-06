@@ -5,63 +5,52 @@ const WINNING_GRID = "winning";
 const WRONG_VALUE = "wrong-value";
 
 export default class SudokuGrid {
-  /**
-   * @type {HTMLInputElement[][]}
-   */
-  #rows;
-  /**
-   * @type {HTMLInputElement[][]}
-   */
-  #subGrids;
-
-  #cellCoordinates = new WeakMap();
-
-  #onInput = ev => {
+  __onInput(ev) {
     const { target } = ev;
     const targetCoordinates = this.getCoordinatesFromCell(target);
 
-    this.#onBlur();
+    this._onBlur();
 
     if (target.form.checkValidity()) {
-      this.#checkGrid()
+      this._checkGrid()
         .then(validGrid =>
-          validGrid ? this.#winningAnimation(target.form) : this.#onFocus(ev)
+          validGrid ? this._winningAnimation(target.form) : this._onFocus(ev)
         )
         .catch(console.error);
     } else if (ev.data !== null) {
       target.reportValidity();
-      this.#onFocus(ev);
+      this._onFocus(ev);
     }
     try {
       localStorage.setItem(USER_INPUT_SAVE + targetCoordinates, target.value);
     } catch {
       console.warn("localStorage not available");
     }
-  };
+  }
 
-  #onFocus = ({ target }) => {
+  __onFocus({ target }) {
     const targetCoordinates = this.getCoordinatesFromCell(target);
 
     const { value, parentNode } = target;
     if (value !== "") {
       const valueClashes = Array.from(parentNode.children)
-        .concat(this.#rows[targetCoordinates[0]])
-        .concat(this.#rows.map(row => row[targetCoordinates[1]]))
+        .concat(this._rows[targetCoordinates[0]])
+        .concat(this._rows.map(row => row[targetCoordinates[1]]))
         .filter(cell => cell !== target && cell.value === value);
       if (valueClashes.length) {
         target.classList.add(WRONG_VALUE);
         valueClashes.forEach(({ classList }) => classList.add(WRONG_VALUE));
       }
     }
-  };
+  }
 
-  #onBlur = () => {
+  _onBlur() {
     Array.from(
       document.getElementsByClassName(WRONG_VALUE)
     ).forEach(({ classList }) => classList.remove(WRONG_VALUE));
-  };
+  }
 
-  #onKeyDown = event => {
+  __onKeyDown(event) {
     if (event.isComposing || event.keyCode === 229) {
       return;
     }
@@ -104,9 +93,9 @@ export default class SudokuGrid {
       (k, i) => (k + move[i] + 9) % 9
     );
     this.getCellFromCoordinates(...newCoordinates).focus();
-  };
+  }
 
-  #createCell = () => {
+  _createCell() {
     const cell = document.createElement("input");
     cell.type = "number";
     cell.maxLength = 1;
@@ -114,17 +103,17 @@ export default class SudokuGrid {
     cell.max = 9;
     cell.required = true;
 
-    cell.addEventListener("input", this.#onInput, { passive: true });
-    cell.addEventListener("focus", this.#onFocus, { passive: true });
-    cell.addEventListener("blur", this.#onBlur, { passive: true });
-    cell.addEventListener("keydown", this.#onKeyDown, { passive: false });
+    cell.addEventListener("input", this._onInput, { passive: true });
+    cell.addEventListener("focus", this._onFocus, { passive: true });
+    cell.addEventListener("blur", this._onBlur, { passive: true });
+    cell.addEventListener("keydown", this._onKeyDown, { passive: false });
 
     return cell;
-  };
+  }
 
-  #winningAnimation = form => {
+  _winningAnimation(form) {
     const keyframes = { opacity: [0, 1], backgroundColor: ["white", "green"] };
-    this.#subGrids.flat().map(cell =>
+    this._subGrids.flat().map(cell =>
       cell.animate(keyframes, {
         delay: Number(cell.value) * 100 + Math.random(),
         duration: Math.random() * 1000,
@@ -132,21 +121,27 @@ export default class SudokuGrid {
     );
 
     form.classList.add(WINNING_GRID);
-  };
+  }
 
   constructor(container, filler) {
     const length = 9;
+    const arraySize = { length };
 
-    this.#subGrids = Array.from({ length }, () =>
-      Array.from({ length }, this.#createCell)
+    this._onKeyDown = this.__onKeyDown.bind(this);
+    this._onFocus = this.__onFocus.bind(this);
+    this._onInput = this.__onInput.bind(this);
+    const createCell = this._createCell.bind(this);
+
+    this._subGrids = Array.from(arraySize, () =>
+      Array.from(arraySize, createCell)
     );
 
-    this.#rows = Array.from({ length }, (_, i) => {
+    this._rows = Array.from(arraySize, (_, i) => {
       const offsetX = i - (i % 3);
       const offsetY = (i * 3) % 9;
       return Array.from(
-        { length },
-        (_, j) => this.#subGrids[offsetX + Math.floor(j / 3)][offsetY + (j % 3)]
+        arraySize,
+        (_, j) => this._subGrids[offsetX + Math.floor(j / 3)][offsetY + (j % 3)]
       );
     });
 
@@ -158,10 +153,10 @@ export default class SudokuGrid {
   restoreSavedGame(requestNewGrid) {
     const previousGame = localStorage.getItem(SAVED_GRID);
     if (previousGame) {
-      this.#fillGame(previousGame);
+      this._fillGame(previousGame);
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
-          const cell = this.#rows[i][j];
+          const cell = this._rows[i][j];
           if (!cell.readOnly) {
             cell.value = localStorage.getItem(USER_INPUT_SAVE + [i, j]);
           }
@@ -176,7 +171,7 @@ export default class SudokuGrid {
     const grid = document.createElement("form");
     grid.className = "grid";
     grid.id = "sudoku";
-    for (const cells of this.#subGrids) {
+    for (const cells of this._subGrids) {
       const subGrid = document.createElement("div");
       subGrid.className = "grid";
       subGrid.append(...cells);
@@ -196,24 +191,24 @@ export default class SudokuGrid {
     });
   }
 
-  fillNewGame = ev => {
+  fillNewGame(ev) {
     const { data } = ev;
 
     Array.from(
       document.getElementsByClassName(WINNING_GRID)
     ).forEach(({ classList }) => classList.remove(WINNING_GRID));
 
-    this.#fillGame(data);
+    this._fillGame(data);
     try {
       localStorage.clear();
       localStorage.setItem(SAVED_GRID, data);
     } catch {
       console.warn("localStorage not available");
     }
-  };
+  }
 
-  #fillGame = data => {
-    const cells = this.#rows.flat().reverse();
+  _fillGame(data) {
+    const cells = this._rows.flat().reverse();
     for (const char of data) {
       const cell = cells.pop();
       if (char === "0") {
@@ -226,10 +221,10 @@ export default class SudokuGrid {
         cell.value = char;
       }
     }
-  };
+  }
 
-  #checkGrid = () =>
-    new Promise((resolve, reject) => {
+  _checkGrid() {
+    return new Promise((resolve, reject) => {
       const extractValues = list => list.map(cell => cell.value);
       const worker = new Worker("./checkGrid.js");
       worker.onmessage = ({ data }) => {
@@ -237,23 +232,27 @@ export default class SudokuGrid {
       };
       worker.onerror = reject;
       worker.postMessage({
-        subGrids: this.#subGrids.map(extractValues),
-        rows: this.#rows.map(extractValues),
+        subGrids: this._subGrids.map(extractValues),
+        rows: this._rows.map(extractValues),
       });
     });
+  }
 
   getCellFromCoordinates(x, y) {
-    return this.#rows[x][y];
+    return this._rows[x][y];
   }
 
   getCoordinatesFromCell(cell) {
-    if (!this.#cellCoordinates.has(cell)) {
-      const row = this.#rows.find(row => row.includes(cell));
-      this.#cellCoordinates.set(cell, [
-        this.#rows.indexOf(row),
+    if (!this._cellCoordinates) {
+      this._cellCoordinates = new WeakMap();
+    }
+    if (!this._cellCoordinates.has(cell)) {
+      const row = this._rows.find(row => row.includes(cell));
+      this._cellCoordinates.set(cell, [
+        this._rows.indexOf(row),
         row.indexOf(cell),
       ]);
     }
-    return this.#cellCoordinates.get(cell);
+    return this._cellCoordinates.get(cell);
   }
 }

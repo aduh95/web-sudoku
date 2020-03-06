@@ -7,4 +7,7 @@ const sudokuGrid = new SudokuGrid(
   Worker.prototype.postMessage.bind(worker)
 );
 
-worker.addEventListener("message", sudokuGrid.fillNewGame);
+worker.addEventListener(
+  "message",
+  SudokuGrid.prototype.fillNewGame.bind(sudokuGrid)
+);
