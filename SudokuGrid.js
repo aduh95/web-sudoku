@@ -163,7 +163,7 @@ export default class SudokuGrid {
         }
       }
     } else {
-      requestNewGrid(81);
+      requestNewGrid();
     }
   }
 

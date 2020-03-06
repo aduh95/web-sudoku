@@ -4,7 +4,7 @@ const worker = new Worker("./sudoku-generator.js");
 
 const sudokuGrid = new SudokuGrid(
   document.querySelector("main"),
-  Worker.prototype.postMessage.bind(worker)
+  Worker.prototype.postMessage.bind(worker, null)
 );
 
 worker.addEventListener(
