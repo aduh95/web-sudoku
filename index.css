@@ -14,7 +14,29 @@ body {
 
 main {
   animation: fadeIn 100ms;
-  min-height: 18rem;
+  min-height: 18.5rem;
+  margin: 1rem 0;
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  font-size: smaller;
+}
+footer > ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  justify-content: center;
+  width: 100vw;
+}
+footer li:not(:last-child)::after {
+  content: "|";
+  margin: 1rem;
+}
+footer a,
+footer a:visited {
+  color: inherit;
 }
 
 .grid {
@@ -81,6 +103,7 @@ main {
   max-width: 10vw;
   width: 2rem;
   height: 2rem;
+  font-size: 1.25rem;
   text-align: center;
   -moz-appearance: textfield;
   appearance: textfield;

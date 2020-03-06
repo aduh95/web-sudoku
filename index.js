@@ -29,7 +29,7 @@ if ("serviceWorker" in navigator) {
       div.style.cursor = "pointer";
       div.textContent = "Ready to work offline";
       div.addEventListener("click", remove);
-      setTimeout(remove, 9999);
+      setTimeout(remove, 2999);
       document.body.append(div);
     })
     .catch(error => {
