@@ -8,6 +8,7 @@
 
 body {
   display: grid;
+  min-height: 100vh;
   justify-content: center;
   justify-items: center;
 }
@@ -18,13 +19,18 @@ main {
   margin: 1rem 0;
 }
 
+p {
+  padding: 0 1rem;
+}
+
 footer {
-  position: absolute;
-  bottom: 0;
+  margin-top: 3rem;
+  align-self: end;
   font-size: smaller;
 }
 footer > ul {
   display: flex;
+  flex-wrap: wrap;
   list-style: none;
   padding: 0;
   justify-content: center;
@@ -107,6 +113,8 @@ footer a:visited {
   text-align: center;
   -moz-appearance: textfield;
   appearance: textfield;
+  border-radius: 0;
+  padding: 0;
 }
 .grid input::-webkit-outer-spin-button,
 .grid input::-webkit-inner-spin-button {
@@ -119,6 +127,10 @@ footer a:visited {
 }
 .grid input:read-only:focus {
   outline: 1px solid;
+}
+
+button {
+  font-size: 1rem;
 }
 
 .wrong-value {
