@@ -112,13 +112,18 @@ export default class SudokuGrid {
   }
 
   _winningAnimation(form) {
-    const keyframes = { opacity: [0, 1], backgroundColor: ["white", "green"] };
-    this._subGrids.flat().map(cell =>
-      cell.animate(keyframes, {
-        delay: Number(cell.value) * 100 + Math.random(),
-        duration: Math.random() * 1000,
-      })
-    );
+    if ("function" === typeof Element.prototype.animate) {
+      const keyframes = {
+        opacity: [0, 1],
+        backgroundColor: ["white", "green"],
+      };
+      this._subGrids.flat().map(cell =>
+        cell.animate(keyframes, {
+          delay: Number(cell.value) * 100 + Math.random(),
+          duration: Math.random() * 1000,
+        })
+      );
+    }
 
     form.classList.add(WINNING_GRID);
   }
