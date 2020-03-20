@@ -11,6 +11,8 @@ body {
   min-height: 100vh;
   justify-content: center;
   justify-items: center;
+  margin: 0;
+  padding: 0;
 }
 
 main {
@@ -137,9 +139,24 @@ button {
   background-color: #fcc;
 }
 
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   :root {
     color: #fff;
     background-color: #222;
+  }
+}
+
+@media print {
+  aside,
+  footer,
+  p,
+  .grid.winning::after {
+    display: none;
+  }
+
+  body::after {
+    content: "\A9 2020, aduh95";
+    align-self: end;
+    font-size: small;
   }
 }
