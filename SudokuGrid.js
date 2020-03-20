@@ -193,7 +193,9 @@ export default class SudokuGrid {
     }
     placeholder.replaceWith(grid);
 
+    grid.addEventListener("submit", e => e.preventDefault());
     grid.addEventListener("reset", () => {
+      grid.classList.remove(WINNING_GRID);
       try {
         const data = localStorage.getItem(SAVED_GRID);
 
