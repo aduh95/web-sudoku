@@ -1,8 +1,14 @@
+import { intlTRFUnits, findRTFUnit, rtf } from "./intl.js";
+
+const PREVIOUS_TIMESTAMP = "previousTimestamp";
+const PREVIOUS_TIME_SPENT = "previousTimeSpent";
 const SAVED_GRID = "previousGame";
 const USER_INPUT_SAVE = "userInput";
 
 const WINNING_GRID = "winning";
 const WRONG_VALUE = "wrong-value";
+
+const PAUSE_TEXT = " GAME ON " + " ".repeat(9) + "  PAUSE  ";
 
 export default class SudokuGrid {
   __onInput(ev) {
@@ -132,7 +138,21 @@ export default class SudokuGrid {
           animate(animation.effect.target);
         }
       }
-      validGrid ? form.classList.add(WINNING_GRID) : onError();
+      if (validGrid) {
+        const duration = this._computeGameDuration() / 1000;
+        this._durationNode.firstChild.data = "Game solved in ";
+
+        this._setDurationNode(
+          `${Math.floor(duration / 3600)}h ${Math.floor(
+            (duration % 3600) / 60
+          )}min ${Math.floor(duration % 60)}s`
+        );
+        form.classList.add(WINNING_GRID);
+        this._pauseButton.disabled = true;
+        this._togglePause(true);
+      } else {
+        onError();
+      }
     };
   }
 
@@ -158,10 +178,87 @@ export default class SudokuGrid {
       );
     });
 
-    this.restoreSavedGame(filler);
+    this._durationNode = document.createElement("p");
+    this._durationTextNode = document.createTextNode("not yet");
+    this._durationNode.append("Game started: ", this._durationTextNode, ".");
+    container.append(this._durationNode);
+
     this.insertGrid(container.firstChild);
     this._enableUIButtons(filler);
+    this._togglePause(false, filler);
     requestAnimationFrame(() => container.querySelector("input").focus());
+
+    document.addEventListener(
+      "visibilitychange",
+      () => this._togglePause(document.hidden),
+      false
+    );
+  }
+
+  _setDurationNode(text) {
+    const node = document.createTextNode(text);
+    this._durationNode.replaceChild(node, this._durationTextNode);
+    this._durationTextNode = node;
+  }
+
+  _togglePause(toggle = !this._isPaused, filler = () => location.reload()) {
+    clearInterval(this._timerInterval);
+    this._isPaused = toggle;
+    if (this._pauseButton.disabled) {
+      // No op
+    } else if (this._isPaused) {
+      this._rows.flat().forEach((cell, i) => {
+        cell.type = "text";
+        cell.readOnly = true;
+        cell.defaultValue = "";
+        cell.value = PAUSE_TEXT[i - 3 * 9] || "";
+        if (i % 3 === 1 && ((i / 9) | 0) % 3 === 1) {
+          cell.placeholder = "❚❚";
+        }
+      });
+      const previousTimestamp = sessionStorage.getItem(PREVIOUS_TIMESTAMP);
+      if (previousTimestamp !== null) {
+        localStorage.setItem(
+          PREVIOUS_TIME_SPENT,
+          Number(localStorage.getItem(PREVIOUS_TIME_SPENT)) +
+            Date.now() -
+            Number(previousTimestamp)
+        );
+        sessionStorage.removeItem(PREVIOUS_TIMESTAMP);
+      }
+      this._pauseButton.textContent = "Resume";
+    } else {
+      this.restoreSavedGame(filler);
+      this._rows.flat().forEach(cell => {
+        cell.type = "number";
+        cell.placeholder = "";
+      });
+      sessionStorage.setItem(PREVIOUS_TIMESTAMP, Date.now());
+      this._intlGameDuration();
+      this._timerInterval = setInterval(() => this._intlGameDuration(), 15000);
+      this._pauseButton.textContent = "Pause";
+    }
+  }
+
+  _computeGameDuration() {
+    const previousTimestamp = sessionStorage.getItem(PREVIOUS_TIMESTAMP);
+    const sinceLastCheck =
+      previousTimestamp === null ? 0 : Date.now() - Number(previousTimestamp);
+
+    return Number(localStorage.getItem(PREVIOUS_TIME_SPENT)) + sinceLastCheck;
+  }
+
+  _intlGameDuration() {
+    if (document.hidden) {
+      return;
+    }
+    const duration = this._computeGameDuration();
+
+    const unit = findRTFUnit(duration);
+
+    this._setDurationNode(
+      rtf.format(Math.round(-duration / intlTRFUnits[unit]), unit)
+    );
   }
 
   restoreSavedGame(requestNewGrid) {
@@ -176,6 +273,7 @@ export default class SudokuGrid {
           }
         }
       }
+      sessionStorage.setItem(PREVIOUS_TIMESTAMP, Date.now());
     } else {
       requestNewGrid();
     }
@@ -196,14 +294,7 @@ export default class SudokuGrid {
     grid.addEventListener("submit", e => e.preventDefault());
     grid.addEventListener("reset", () => {
       grid.classList.remove(WINNING_GRID);
-      try {
-        const data = localStorage.getItem(SAVED_GRID);
-
-        localStorage.clear();
-        localStorage.setItem(SAVED_GRID, data);
-      } catch {
-        console.warn("localStorage not available");
-      }
+      this._resetSavedGame(localStorage.getItem(SAVED_GRID));
     });
   }
 
@@ -211,6 +302,10 @@ export default class SudokuGrid {
     const requestNewGameButton = document.getElementById("newGame");
     requestNewGameButton.addEventListener("click", filler);
     requestNewGameButton.disabled = false;
+
+    this._pauseButton = document.getElementById("pauseGame");
+    this._pauseButton.addEventListener("click", () => this._togglePause());
+    this._pauseButton.disabled = false;
   }
 
   fillNewGame(ev) {
@@ -221,12 +316,20 @@ export default class SudokuGrid {
     ).forEach(({ classList }) => classList.remove(WINNING_GRID));
 
     this._fillGame(data);
+    this._resetSavedGame(data);
+  }
+
+  _resetSavedGame(data) {
     try {
       localStorage.clear();
       localStorage.setItem(SAVED_GRID, data);
+      sessionStorage.setItem(PREVIOUS_TIMESTAMP, Date.now());
     } catch {
       console.warn("localStorage not available");
     }
+    this._durationNode.firstChild.data = "Game started: ";
+    this._pauseButton.disabled = false;
+    this._togglePause(false);
   }
 
   _fillGame(data) {

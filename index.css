@@ -25,6 +25,10 @@ p {
   padding: 0 1rem;
 }
 
+main > p {
+  text-align: center;
+}
+
 footer {
   margin-top: 3rem;
   align-self: end;
@@ -117,6 +121,7 @@ footer a:visited {
   appearance: textfield;
   border-radius: 0;
   padding: 0;
+  transition: background-color 100ms;
 }
 .grid input::-webkit-outer-spin-button,
 .grid input::-webkit-inner-spin-button {
