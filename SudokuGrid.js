@@ -13,9 +13,7 @@ export default class SudokuGrid {
 
     if (target.form.checkValidity()) {
       this._checkGrid()
-        .then(validGrid =>
-          validGrid ? this._winningAnimation(target.form) : this._onFocus(ev)
-        )
+        .then(this._winningAnimation(target.form, () => this._onFocus(ev)))
         .catch(console.error);
     } else if (ev.data !== null) {
       target.reportValidity();
@@ -111,21 +109,31 @@ export default class SudokuGrid {
     return cell;
   }
 
-  _winningAnimation(form) {
-    if ("function" === typeof Element.prototype.animate) {
-      const keyframes = {
-        opacity: [0, 1],
-        backgroundColor: ["white", "green"],
-      };
-      this._subGrids.flat().map(cell =>
-        cell.animate(keyframes, {
-          delay: Number(cell.value) * 100 + Math.random(),
-          duration: Math.random() * 1000,
-        })
-      );
-    }
+  _winningAnimation(form, onError) {
+    const keyframes = {
+      opacity: [0, 1],
+      backgroundColor: ["#fff", "#0336ff"],
+    };
+    const animate = cell =>
+      cell.animate(keyframes, {
+        delay: Number(cell.value) * 100 + Math.random(),
+        duration: Math.random() * 1000,
+      });
+    const animations =
+      "function" === typeof Element.prototype.animate
+        ? this._subGrids.flat().map(animate)
+        : [];
 
-    form.classList.add(WINNING_GRID);
+    return validGrid => {
+      keyframes.backgroundColor[1] = validGrid ? "#41c300" : "#C23812";
+      for (const animation of animations) {
+        if (animation.playState !== "finished") {
+          animation.cancel();
+          animate(animation.effect.target);
+        }
+      }
+      validGrid ? form.classList.add(WINNING_GRID) : onError();
+    };
   }
 
   constructor(container, filler) {
