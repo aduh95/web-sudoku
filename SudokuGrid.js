@@ -1,4 +1,4 @@
-import { intlTRFUnits, findRTFUnit, rtf } from "./intl.js";
+import formatRelativeTime from "./formatRelativeTime.js";
 
 const PREVIOUS_TIMESTAMP = "previousTimestamp";
 const PREVIOUS_TIME_SPENT = "previousTimeSpent";
@@ -9,6 +9,7 @@ const WINNING_GRID = "winning";
 const WRONG_VALUE = "wrong-value";
 
 const PAUSE_TEXT = " GAME ON " + " ".repeat(9) + "  PAUSE  ";
+const TIMER_INTERVAL = 13000;
 
 export default class SudokuGrid {
   __onInput(ev) {
@@ -139,13 +140,10 @@ export default class SudokuGrid {
         }
       }
       if (validGrid) {
-        const duration = this._computeGameDuration() / 1000;
         this._durationNode.firstChild.data = "Game solved in ";
 
         this._setDurationNode(
-          `${Math.floor(duration / 3600)}h ${Math.floor(
-            (duration % 3600) / 60
-          )}min ${Math.floor(duration % 60)}s`
+          formatRelativeTime(this._computeGameDuration(), true)
         );
         form.classList.add(WINNING_GRID);
         this._pauseButton.disabled = true;
@@ -235,7 +233,10 @@ export default class SudokuGrid {
       });
       sessionStorage.setItem(PREVIOUS_TIMESTAMP, Date.now());
       this._intlGameDuration();
-      this._timerInterval = setInterval(() => this._intlGameDuration(), 15000);
+      this._timerInterval = setInterval(
+        () => this._intlGameDuration(),
+        TIMER_INTERVAL
+      );
       this._pauseButton.textContent = "Pause";
     }
   }
@@ -252,13 +253,8 @@ export default class SudokuGrid {
     if (document.hidden) {
       return;
     }
-    const duration = this._computeGameDuration();
 
-    const unit = findRTFUnit(duration);
-
-    this._setDurationNode(
-      rtf.format(Math.round(-duration / intlTRFUnits[unit]), unit)
-    );
+    this._setDurationNode(formatRelativeTime(this._computeGameDuration()));
   }
 
   restoreSavedGame(requestNewGrid) {

@@ -10,6 +10,7 @@ self.addEventListener("install", event => {
         "./index.css",
         "./index.js",
         "./SudokuGrid.js",
+        "./formatRelativeTime.js",
         "./checkGrid.js",
         "./sudoku-generator.js",
         "./sudoku-generator.wasm",
