@@ -31,11 +31,13 @@ please reach out or send a PR.
 
 ### Dependencies
 
-- [`emcc`](https://emscripten.org) (to compile the C++ file to WASM).
-- a web server to test locally; I am using [`python3`](https://python.org), but
-  any web server would do.
+- [`emcc`](https://emscripten.org) (to compile the C++ file to WASM). a web
+  server to test locally; I am using [`python3`](https://python.org), but any
+  web server would do.
 - [`make`](https://www.gnu.org/software/make/manual/make.html), although that's
   not a requirement as the build steps are kind of straight-forward.
+- [Java](http://oracle.com/java/), to run Closure Compiler, also not a
+  requirement either.
 
 ### Run on localhost
 

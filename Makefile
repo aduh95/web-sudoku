@@ -18,6 +18,7 @@ serve: sudoku-generator.js
 
 %.js: %.cpp
 	$(CC) --bind \
-		-s FILESYSTEM=0 -s DYNAMIC_EXECUTION=0 -s ENVIRONMENT=worker \
+		-s FILESYSTEM=0 -s ENVIRONMENT=worker \
 		--post-js post.js \
+		--closure 1 \
 		-Oz $< -o $@
